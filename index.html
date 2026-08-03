@@ -567,6 +567,25 @@ var saveMap=[{match:"saveAudit('forno')",type:'forno'},{match:"saveAudit('lamina
 var access=document.createElement('button');access.id='admin-access-btn';access.className='tab-btn';access.onclick=function(){if(adminPassword)leaveAdmin();else enterAdmin()};document.querySelector('.tab-bar').appendChild(access);setMode(false);setTimeout(loadPublicHistory,300);
 })();
 </script>
+<script>
+/* Compatibilidade do salvamento online: envia o registro em um único payload. */
+(function(){
+var nativeFetch=window.fetch;
+window.fetch=function(input,init){
+  var url=typeof input==='string'?input:(input&&input.url)||'';
+  if(init&&init.method==='POST'&&/\/rest\/v1\/rpc\/save_auditoria$/.test(url)){
+    try{
+      var body=typeof init.body==='string'?JSON.parse(init.body):init.body;
+      if(body&&body.p_password!==undefined){
+        var request=Object.assign({},init,{body:JSON.stringify({p_payload:body})});
+        return nativeFetch.call(this,url.replace(/save_auditoria$/,'salvar_auditoria_web'),request);
+      }
+    }catch(error){}
+  }
+  return nativeFetch.apply(this,arguments);
+};
+})();
+</script>
 <div class="design-ui-credit" aria-hidden="true" style="">💜 by ClickUp Brain</div>
 <script>
 /* Importação controlada do histórico resumido - Processos 3 e 4 (junho/julho de 2026). */
