@@ -545,7 +545,7 @@ function headers(extra){return Object.assign({'apikey':KEY,'Authorization':'Bear
 function esc(v){return String(v==null?'':v).replace(/[&<>'"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]})}
 function rowToAudit(r,full){return{id:Number(r.audit_id),type:r.type,team:r.team,date:r.audit_date,cargo:r.cargo||'',score:Number(r.score),totalOk:Number(r.total_ok||0),totalNo:Number(r.total_no||0),report:full?(r.report||{}):undefined}}
 function auditToArgs(a,password){return{p_password:password,p_audit_id:a.id,p_type:a.type,p_team:a.team,p_audit_date:a.date,p_cargo:a.cargo,p_score:a.score,p_total_ok:a.totalOk,p_total_no:a.totalNo,p_report:a.report||{}}}
-async function rpc(name,body){var res=await fetch(API+'/rest/v1/rpc/'+name,{method:'POST',headers:headers(),body:JSON.stringify(body)});if(!res.ok)throw new Error('Senha inválida ou banco indisponível');return res.json()}
+async function rpc(name,body){var endpoint=name,payload=body;if(name==='save_auditoria'){endpoint='salvar_auditoria_text';payload={p_payload:JSON.stringify(body)}}var res=await fetch(API+'/rest/v1/rpc/'+endpoint,{method:'POST',headers:headers(),body:JSON.stringify(payload)});if(!res.ok)throw new Error('Senha inválida ou banco indisponível');return res.json()}
 function setLocal(audits){localStorage.setItem('alcob_s',JSON.stringify(audits));if(window.rebuildAuditDashboard)window.rebuildAuditDashboard();refreshDash()}
 function allSaved(){return JSON.parse(localStorage.getItem('alcob_s')||'[]')}
 function clearEditNotice(){var el=document.getElementById('editAuditNotice');if(el)el.remove();editingAudit=null}
@@ -565,25 +565,6 @@ window.delS=async function(id){if(!await ensureAdmin())return;if(!confirm('Exclu
 window.renderSaved=function(filter){var saved=allSaved().sort(function(a,b){return b.id-a.id});if(filter!=='all')saved=saved.filter(function(a){return a.type===filter});var list=document.getElementById('savedList');if(!saved.length){list.innerHTML='<div class="empty-state">Nenhuma auditoria salva.</div>';return}list.innerHTML=saved.map(function(a){var t=types[a.type]||{label:a.type,icon:'📋'};var actions=adminPassword?'<button onclick="viewSavedReport('+a.id+')" style="margin-left:8px;background:#dbeafe;color:#1d4ed8;border:none;border-radius:4px;padding:4px 10px;font-size:9px;font-weight:700;cursor:pointer">📄 Relatório</button><button onclick="editSavedAudit('+a.id+')" style="margin-left:4px;background:#fef3c7;color:#92400e;border:none;border-radius:4px;padding:4px 10px;font-size:9px;font-weight:700;cursor:pointer">✏️ Editar</button><button onclick="delS('+a.id+')" style="margin-left:4px;background:#fee2e2;color:#dc2626;border:none;border-radius:4px;padding:4px 10px;font-size:9px;font-weight:700;cursor:pointer">✕</button>':'';return'<div class="saved-item"><span class="saved-type" style="background:oklch(45% .10 250);color:white">'+t.icon+' '+esc(t.label)+'</span><div class="saved-info"><div class="name">'+esc(a.team)+'</div><div class="detail">'+esc(a.date)+' | '+esc(a.cargo)+' | OK:'+a.totalOk+' NÃO:'+a.totalNo+'</div></div><span class="sb-'+gc(a.score)+'">'+a.score.toFixed(2).replace('.',',')+' %</span>'+actions+'</div>'}).join('')};
 var saveMap=[{match:"saveAudit('forno')",type:'forno'},{match:"saveAudit('laminacao')",type:'laminacao'},{match:'saveLabAudit',type:'laboratorio'},{match:'savePressAudit',type:'prensa'},{match:'savecal',type:'caldeiraria'},{match:'savemec',type:'mecanica'},{match:'saveele',type:'eletrica'},{match:'savelav',type:'lavador'},{match:'savePcpAudit',type:'pcp'}];document.querySelectorAll('.form-actions .btn-save').forEach(function(button){var code=button.getAttribute('onclick')||'',entry=saveMap.find(function(x){return code.indexOf(x.match)>=0});if(entry)button.onclick=function(event){event.preventDefault();saveSecure(types[entry.type])}});
 var access=document.createElement('button');access.id='admin-access-btn';access.className='tab-btn';access.onclick=function(){if(adminPassword)leaveAdmin();else enterAdmin()};document.querySelector('.tab-bar').appendChild(access);setMode(false);setTimeout(loadPublicHistory,300);
-})();
-</script>
-<script>
-/* Compatibilidade do salvamento online: envia o registro em um único payload. */
-(function(){
-var nativeFetch=window.fetch;
-window.fetch=function(input,init){
-  var url=typeof input==='string'?input:(input&&input.url)||'';
-  if(init&&init.method==='POST'&&/\/rest\/v1\/rpc\/save_auditoria$/.test(url)){
-    try{
-      var body=typeof init.body==='string'?JSON.parse(init.body):init.body;
-      if(body&&body.p_password!==undefined){
-        var request=Object.assign({},init,{body:JSON.stringify({p_payload:body})});
-        return nativeFetch.call(this,url.replace(/save_auditoria$/,'salvar_auditoria_web'),request);
-      }
-    }catch(error){}
-  }
-  return nativeFetch.apply(this,arguments);
-};
 })();
 </script>
 <div class="design-ui-credit" aria-hidden="true" style="">💜 by ClickUp Brain</div>
