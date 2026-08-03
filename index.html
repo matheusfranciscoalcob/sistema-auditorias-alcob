@@ -541,6 +541,7 @@ window.rebuildAuditDashboard();refreshDash();
 (function(){
 var API='https://rkejqjjnlmgdhcxzrfcg.supabase.co',KEY='sb_publishable_fih1pIFupZAnwTR09eP6YQ_s4X9WmXK',adminPassword=null,editingAudit=null;
 var types={forno:{label:'Forno',icon:'🔥',pfx:'f',tab:'tab-forno',sheet:'fornoSheet'},laminacao:{label:'Laminação',icon:'⚙️',pfx:'l',tab:'tab-laminacao',sheet:'lamSheet'},laboratorio:{label:'Laboratório',icon:'🧪',pfx:'lab',tab:'tab-laboratorio',sheet:'labSheet'},prensa:{label:'Prensa',icon:'🗜️',pfx:'press',tab:'tab-prensa',sheet:'pressSheet'},caldeiraria:{label:'Caldeiraria',icon:'🔧',pfx:'cal',tab:'tab-cal',sheet:'calSheet'},mecanica:{label:'Manutenção Mecânica',icon:'⚙️',pfx:'mec',tab:'tab-mec',sheet:'mecSheet'},eletrica:{label:'Manutenção Elétrica',icon:'⚡',pfx:'ele',tab:'tab-ele',sheet:'eleSheet'},lavador:{label:'Lavador',icon:'💨',pfx:'lav',tab:'tab-lav',sheet:'lavSheet'},pcp:{label:'PCP',icon:'📅',pfx:'pcp',tab:'tab-pcp',sheet:'pcpSheet'}};
+Object.keys(types).forEach(function(type){types[type].type=type});
 function headers(extra){return Object.assign({'apikey':KEY,'Authorization':'Bearer '+KEY,'Content-Type':'application/json'},extra||{})}
 function esc(v){return String(v==null?'':v).replace(/[&<>'"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]})}
 function rowToAudit(r,full){return{id:Number(r.audit_id),type:r.type,team:r.team,date:r.audit_date,cargo:r.cargo||'',score:Number(r.score),totalOk:Number(r.total_ok||0),totalNo:Number(r.total_no||0),report:full?(r.report||{}):undefined}}
