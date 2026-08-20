@@ -480,7 +480,7 @@ window.renderImprovementSuggestions=function(){
       if(pending)actions='<div class="suggestion-actions"><button class="engineering-approve" onclick="evaluateKaizen('+item.id+',true)">✓ Engenharia: registrar</button><button class="engineering-reject" onclick="evaluateKaizen('+item.id+',false)">✕ Não aprovar</button><button style="background:#fef3c7;color:#92400e" onclick="openImprovementSuggestionForm('+item.id+')">✏️ Revisar conteúdo</button></div>';
       else actions='<div class="suggestion-actions"><button style="background:#dbeafe;color:#1d4ed8" onclick="createActionPlanFromSuggestion('+item.id+')">'+((item.acoes||[]).length?'＋ Nova ação vinculada':'🧭 Transformar em ação')+'</button><button style="background:#fef3c7;color:#92400e" onclick="openImprovementSuggestionForm('+item.id+')">✏️ Editar / atualizar</button><button style="background:#fee2e2;color:#991b1b" onclick="deleteImprovementSuggestion('+item.id+')">✕ Remover</button></div>';
     }
-    return'<article class="suggestion-card"><div class="suggestion-card-head"><h3>'+html(item.titulo)+'</h3><div class="suggestion-card-tags"><span class="suggestion-sector">'+html(app.suggestionSectorLabel(item.setor))+'</span><span class="origin-badge '+(item.origem||'empty')+'">'+html(originLabels[item.origem||'']||item.origem)+'</span><span class="suggestion-status '+suggestionStatusClass(item.status)+'">'+html(item.status)+'</span></div></div><div class="suggestion-description">'+html(item.descricao)+'</div>'+(pending?'<div class="suggestion-engineering-note">Aguardando avaliação da Engenharia. Somente após a aprovação esta ideia passará para “Registrada”.</div>':'')+'<span class="suggestion-label">IDEIA DE</span><div class="suggestion-badges">'+authors+'</div><span class="suggestion-label">AUDITORIAS DE ORIGEM</span><div class="suggestion-badges">'+(audits||'<span class="suggestion-empty-link">Sem auditoria específica vinculada</span>')+'</div><span class="suggestion-label">AÇÕES NO PLANO 5W2H</span><div class="suggestion-badges">'+(linked||'<span class="suggestion-empty-link">Ainda não virou ação</span>')+'</div><details class="suggestion-timeline"><summary>Acompanhamento de status • atualizado em '+html(app.suggestionDate(item.updated_at))+'</summary><ul>'+history+'</ul></details>'+actions+'</article>';
+    return'<article class="suggestion-card"><div class="suggestion-card-head"><h3>'+html(item.titulo)+'</h3><div class="suggestion-card-tags"><span class="suggestion-sector">'+html(app.suggestionSectorLabel(item.setor))+'</span><span class="origin-badge '+(item.origem||'empty')+'">'+html(originLabels[item.origem||'']||item.origem)+'</span><span class="suggestion-status '+suggestionStatusClass(item.status)+'">'+html(item.status)+'</span></div></div><div class="suggestion-description">'+html(item.descricao)+'</div>'+(pending?'<div class="suggestion-engineering-note">Aguardando avaliação da Engenharia. Somente após a aprovação esta ideia passará para “Registrada”.</div>':'')+'<span class="suggestion-label">IDEIA DE</span><div class="suggestion-badges">'+(authors||'<span class="suggestion-empty-link">Envio sem identificação</span>')+'</div><span class="suggestion-label">AUDITORIAS DE ORIGEM</span><div class="suggestion-badges">'+(audits||'<span class="suggestion-empty-link">Sem auditoria específica vinculada</span>')+'</div><span class="suggestion-label">AÇÕES NO PLANO 5W2H</span><div class="suggestion-badges">'+(linked||'<span class="suggestion-empty-link">Ainda não virou ação</span>')+'</div><details class="suggestion-timeline"><summary>Acompanhamento de status • atualizado em '+html(app.suggestionDate(item.updated_at))+'</summary><ul>'+history+'</ul></details>'+actions+'</article>';
   }).join('');
 };
 
@@ -494,7 +494,7 @@ function installKaizenTab(){
   var dashboardButton=Array.from(document.querySelectorAll('.tab-bar .tab-btn')).find(function(item){return(item.getAttribute('onclick')||'').indexOf("switchTab('dashboard')")>=0});
   if(dashboardButton)dashboardButton.insertAdjacentElement('afterend',button);else document.querySelector('.tab-bar').appendChild(button);
   var tab=document.createElement('div');tab.id='tab-kaizen';tab.className='tab-content';
-  tab.innerHTML='<div class="page-header"><div class="logo">ALCOB<small>ecovergalhão ♻</small></div><div class="page-title">Kaizen — Sugestões da Fábrica</div><div class="meta-box"><span class="legend-item leg-green">Acesso livre</span><span class="legend-item leg-blue">Avaliação pela Engenharia</span></div></div><div class="kaizen-wrap"><div class="kaizen-intro"><section class="kaizen-card"><h2>Sua ideia pode melhorar nosso processo</h2><p>Registre uma oportunidade de segurança, qualidade, produtividade, organização ou redução de desperdícios. A Engenharia avaliará a proposta antes de ela entrar no acompanhamento oficial.</p><div class="kaizen-flow"><span>1. Envie a ideia</span><span>2. Engenharia avalia</span><span>3. Ideia registrada</span></div></section><section class="kaizen-card kaizen-qr-card"><h3>Acesso rápido na fábrica</h3><img src="assets/kaizen-sugestoes-qr.png" alt="QR Code para registrar uma sugestão Kaizen"><p>Aponte a câmera do celular.</p><button class="btn btn-print" onclick="printKaizenPoster()">🖨️ Imprimir cartaz A4</button></section></div><form class="kaizen-form" onsubmit="submitPublicKaizen(event)"><label class="wide">TÍTULO DA IDEIA *<input id="kaizen-title" maxlength="180" required placeholder="Resuma sua sugestão"></label><label class="wide">DESCRIÇÃO *<textarea id="kaizen-description" maxlength="5000" required placeholder="Explique a situação atual, a ideia e o benefício esperado"></textarea></label><label>SETOR ONDE SERÁ IMPLEMENTADA *<select id="kaizen-sector" required><option value="">Selecione o setor</option>'+app.actionSelectOptions('')+'</select></label><label>ORIGEM E STATUS<input value="Kaizen • Aguardando avaliação da Engenharia" disabled></label><label class="wide">DE QUEM SURGIU A IDEIA? *<span style="font-weight:500;color:#64748b">Selecione de um a cinco colaboradores cadastrados.</span><div class="suggestion-search-row"><input id="kaizen-author-search" type="search" autocomplete="off" placeholder="Pesquisar por nome, cargo ou setor..."><span class="suggestion-search-count" id="kaizen-author-count"></span></div><div class="suggestion-picker" id="kaizen-authors"></div></label><div id="kaizen-success" class="kaizen-success enhancement-hidden"></div><div class="kaizen-form-actions"><span>Nenhuma senha administrativa é necessária para enviar.</span><button class="btn btn-save" id="kaizen-submit" type="submit">💾 Enviar sugestão para a Engenharia</button></div></form></div>';
+  tab.innerHTML='<div class="page-header"><div class="logo">ALCOB<small>ecovergalhão ♻</small></div><div class="page-title">Kaizen — Sugestões da Fábrica</div><div class="meta-box"><span class="legend-item leg-green">Acesso livre</span><span class="legend-item leg-blue">Avaliação pela Engenharia</span></div></div><div class="kaizen-wrap"><div class="kaizen-intro"><section class="kaizen-card"><h2>Sua ideia pode melhorar nosso processo</h2><p>Registre uma oportunidade de segurança, qualidade, produtividade, organização ou redução de desperdícios. A Engenharia avaliará a proposta antes de ela entrar no acompanhamento oficial.</p><div class="kaizen-flow"><span>1. Envie a ideia</span><span>2. Engenharia avalia</span><span>3. Ideia registrada</span></div></section><section class="kaizen-card kaizen-qr-card"><h3>Acesso rápido na fábrica</h3><img src="assets/kaizen-sugestoes-qr.png" alt="QR Code para registrar uma sugestão Kaizen"><p>Aponte a câmera do celular.</p><button class="btn btn-print" onclick="printKaizenPoster()">🖨️ Imprimir cartaz A4</button></section></div><form class="kaizen-form" onsubmit="submitPublicKaizen(event)"><label class="wide">TÍTULO DA IDEIA *<input id="kaizen-title" maxlength="180" required placeholder="Resuma sua sugestão"></label><label class="wide">DESCRIÇÃO *<textarea id="kaizen-description" maxlength="5000" required placeholder="Explique a situação atual, a ideia e o benefício esperado"></textarea></label><label>SETOR ONDE SERÁ IMPLEMENTADA — OPCIONAL<select id="kaizen-sector"><option value="">Não informar / a definir</option>'+app.actionSelectOptions('')+'</select></label><label>ORIGEM E STATUS<input value="Kaizen • Aguardando avaliação da Engenharia" disabled></label><details class="kaizen-people-details wide"><summary><span>IDENTIFICAR DE QUEM SURGIU A IDEIA — OPCIONAL</span><small id="kaizen-author-count">Sem identificação</small></summary><div class="kaizen-people-content"><p>Se desejar, pesquise e selecione até cinco colaboradores. Você também pode enviar anonimamente.</p><div class="suggestion-search-row"><input id="kaizen-author-search" type="search" autocomplete="off" placeholder="Pesquisar por nome, cargo ou setor..."><span class="suggestion-search-count" id="kaizen-author-result-count"></span></div><div class="suggestion-picker" id="kaizen-authors"></div></div></details><div id="kaizen-success" class="kaizen-success enhancement-hidden"></div><div class="kaizen-form-actions"><span>Nenhuma senha, identificação pessoal ou setor é obrigatório para enviar.</span><button class="btn btn-save" id="kaizen-submit" type="submit">💾 Enviar sugestão para a Engenharia</button></div></form></div>';
   document.body.appendChild(tab);
   $('kaizen-author-search').addEventListener('input',filterKaizenAuthors);
   var poster=document.createElement('div');poster.className='kaizen-poster-shell';poster.innerHTML='<article class="kaizen-poster"><header class="kaizen-poster-brand"><strong>ALCOB</strong><small>ecovergalhão ♻</small></header><h1>Tem uma ideia de melhoria?</h1><p>Ajude a tornar nosso trabalho mais seguro, organizado, produtivo e com menos desperdícios.</p><img src="assets/kaizen-sugestoes-qr.png" alt="QR Code Kaizen"><p><strong>Aponte a câmera do celular e registre sua sugestão.</strong></p><div class="kaizen-poster-steps"><div>1<br>Escaneie</div><div>2<br>Descreva</div><div>3<br>Envie</div></div><footer>A sugestão será avaliada pela Engenharia antes de entrar no acompanhamento oficial.</footer></article>';
@@ -502,14 +502,19 @@ function installKaizenTab(){
 }
 function renderKaizenAuthors(){
   var people=app.registeredPeople(),target=$('kaizen-authors');
-  target.innerHTML=people.length?people.map(function(person){return'<label data-suggestion-option="kaizen-author"><input type="checkbox" value="'+html(person.token)+'"><span><strong>'+html(person.nome)+'</strong><br>'+html(person.cargo+' • '+(person.setor?sectorLabel(person.setor):''))+'</span></label>'}).join(''):'<div class="empty-state">Nenhum colaborador cadastrado. Procure a liderança.</div>';
-  target.querySelectorAll('input').forEach(function(input){input.addEventListener('change',filterKaizenAuthors)});
+  target.innerHTML=people.length?people.map(function(person){return'<label data-suggestion-option="kaizen-author"><input type="checkbox" value="'+html(person.token)+'"><span><strong>'+html(person.nome)+'</strong><small>'+html(person.cargo+(person.setor?' • '+sectorLabel(person.setor):''))+'</small></span></label>'}).join(''):'<div class="empty-state">Nenhum colaborador cadastrado. A ideia ainda pode ser enviada anonimamente.</div>';
+  target.querySelectorAll('input').forEach(function(input){input.addEventListener('change',function(){
+    var selected=target.querySelectorAll('input:checked');
+    if(selected.length>5){input.checked=false;toast('⚠️ É possível identificar no máximo cinco colaboradores.')}
+    filterKaizenAuthors();
+  })});
   filterKaizenAuthors();
 }
 function filterKaizenAuthors(){
-  var query=key($('kaizen-author-search')&&$('kaizen-author-search').value),visible=0,selected=document.querySelectorAll('#kaizen-authors input:checked').length;
-  document.querySelectorAll('#kaizen-authors label[data-suggestion-option]').forEach(function(label){var show=!query||key(label.textContent).indexOf(query)>=0;label.style.display=show?'':'none';if(show)visible++});
-  if($('kaizen-author-count'))$('kaizen-author-count').textContent=visible+' exibido(s) • '+selected+' selecionado(s)';
+  var options=Array.from(document.querySelectorAll('#kaizen-authors label[data-suggestion-option]')),query=key($('kaizen-author-search')&&$('kaizen-author-search').value),visible=0,selected=document.querySelectorAll('#kaizen-authors input:checked').length;
+  options.forEach(function(label){var show=!query||key(label.textContent).indexOf(query)>=0;label.style.display=show?'':'none';if(show)visible++});
+  if($('kaizen-author-count'))$('kaizen-author-count').textContent=selected?selected+' selecionado(s)':'Sem identificação';
+  if($('kaizen-author-result-count'))$('kaizen-author-result-count').textContent=visible+' de '+options.length+' exibido(s)';
 }
 window.switchKaizenTab=async function(){
   installKaizenTab();selectAllTabs('tab-kaizen','kaizen-tab-btn');
@@ -519,21 +524,21 @@ window.switchKaizenTab=async function(){
 window.submitPublicKaizen=async function(event){
   event.preventDefault();
   var authors=Array.from(document.querySelectorAll('#kaizen-authors input:checked')).map(function(input){return input.value});
-  if(!authors.length||authors.length>5){toast('⚠️ Selecione de um a cinco colaboradores.');return}
+  if(authors.length>5){toast('⚠️ Selecione no máximo cinco colaboradores.');return}
   var button=$('kaizen-submit');button.disabled=true;button.textContent='Enviando...';
   try{
     var id=await app.rpc('enviar_sugestao_kaizen',{p_titulo:$('kaizen-title').value.trim(),p_descricao:$('kaizen-description').value.trim(),p_setor:$('kaizen-sector').value,p_autores:authors});
-    event.target.reset();renderKaizenAuthors();
+    event.target.reset();var peopleDetails=document.querySelector('.kaizen-people-details');if(peopleDetails)peopleDetails.open=false;renderKaizenAuthors();
     $('kaizen-success').classList.remove('enhancement-hidden');$('kaizen-success').textContent='✅ Sugestão #'+id+' enviada. Ela está aguardando avaliação da Engenharia.';
     toast('✅ Kaizen enviado para avaliação da Engenharia.');
   }catch(error){toast('❌ Não foi possível enviar: '+error.message)}
   finally{button.disabled=false;button.textContent='💾 Enviar sugestão para a Engenharia'}
 };
 window.printKaizenPoster=function(){document.body.classList.add('kaizen-printing');window.print();setTimeout(function(){document.body.classList.remove('kaizen-printing')},800)};
-window.addEventListener('afterprint',function(){document.body.classList.remove('kaizen-printing');document.body.classList.remove('operator-printing')});
+window.addEventListener('afterprint',function(){document.body.classList.remove('kaizen-printing')});
 
 /* ------------------------------------------------------------------------ */
-/* Auditoria operacional separada para Forno, Prensa e os três subsetores.  */
+/* Auditoria operacional integrada às abas de Forno, Prensa e Laminação.    */
 /* ------------------------------------------------------------------------ */
 
 var laminationActivities={
@@ -614,113 +619,140 @@ function operatorQuestionSet(sector,subsetor){
   fiveSQuestions.forEach(function(question,index){rows.push({id:'5s-'+(index+1),group:'5S',question:question,parameter:qParam('5S')})});
   return rows;
 }
-function installOperatorTab(){
-  if($('operational-audit-tab-btn'))return;
-  var button=document.createElement('button');button.id='operational-audit-tab-btn';button.className='tab-btn';button.textContent='👷 Auditoria Operacional';button.onclick=window.switchOperationalAuditTab;
-  var lamButton=Array.from(document.querySelectorAll('.tab-bar .tab-btn')).find(function(item){return(item.getAttribute('onclick')||'').indexOf("switchTab('laminacao')")>=0});
-  if(lamButton)lamButton.insertAdjacentElement('afterend',button);else document.querySelector('.tab-bar').appendChild(button);
-  var tab=document.createElement('div');tab.id='tab-operational-audit';tab.className='tab-content';
-  tab.innerHTML='<div class="page-header"><div class="logo">ALCOB<small>ecovergalhão ♻</small></div><div class="page-title">Auditoria Operacional</div><div class="meta-box"><span class="legend-item leg-blue">Conhecimento técnico</span><span class="legend-item leg-green">Segurança e 5S</span></div></div><div class="operator-wrap"><div class="operator-hero"><div><h2>Auditoria de operadores</h2><p>Formulário separado da avaliação de gestão dos supervisores, focado nas atividades do dia a dia, Segurança do Trabalho e 5S.</p></div><span style="font-size:38px">👷</span></div><div class="operator-context"><label>SETOR *<select id="operator-sector"><option value="forno">Forno</option><option value="laminacao">Laminação</option><option value="prensa">Prensa</option></select></label><label id="operator-subsector-wrap">SUBSETOR *<select id="operator-subsector"><option value="roda">Roda</option><option value="laminacao" selected>Laminação</option><option value="bobinador">Bobinador</option></select></label><label>COLABORADOR CADASTRADO *<select id="operator-person"><option value="">Selecione</option></select></label><label>AUDITOR CADASTRADO *<select id="operator-auditor"><option value="">Selecione</option></select></label><label>DATA *<input type="date" id="operator-date"></label><div class="operator-registration" id="operator-registration">Selecione setor e colaborador. O formulário usa somente cadastros operacionais ativos.</div></div><section class="operator-sheet" id="operator-sheet"><header class="operator-sheet-head"><h3 id="operator-form-title">Auditoria Operacional — Forno</h3><span class="operator-score" id="operator-score">0,00%</span></header><div class="operator-table-wrap"><table class="operator-table"><thead><tr><th style="width:48px">#</th><th style="width:82px">Grupo</th><th>Conhecimento / execução avaliada</th><th class="status-cell">Resultado</th><th class="note-cell">Apontamento / evidência</th><th>Parâmetro</th></tr></thead><tbody id="operator-body"></tbody></table></div><div class="operator-actions"><button class="btn btn-clear" onclick="clearOperatorAudit()">🗑️ Limpar</button><button class="btn btn-print" onclick="printOperatorAudit()">🖨️ Imprimir</button><button class="btn btn-save" id="operator-save" onclick="saveOperatorAudit()">💾 Salvar + PDF</button></div></section></div>';
-  document.body.appendChild(tab);
-  $('operator-sector').addEventListener('change',syncOperatorContext);$('operator-subsector').addEventListener('change',syncOperatorContext);$('operator-person').addEventListener('change',updateOperatorRegistration);
-  $('operator-date').value=new Date().toISOString().slice(0,10);
+var integratedOperatorForms={};
+function operatorPerson(form){
+  var name=form.name.value;
+  return app.subordinations.find(function(item){return item.setor===form.type&&key(item.subordinado)===key(name)})||null;
 }
-function renderOperatorAuditors(selected){
-  var select=$('operator-auditor'),current=selected||select.value;
-  select.innerHTML='<option value="">Selecione um auditor</option>'+app.auditors.map(function(item){return'<option value="'+item.id+'"'+(String(item.id)===String(current)?' selected':'')+'>'+html(item.nome)+' — '+html(item.cargo)+'</option>'}).join('');
-}
-function syncOperatorContext(){
-  var sector=$('operator-sector').value,subsetor=sector==='laminacao'?$('operator-subsector').value:null;
-  $('operator-subsector-wrap').classList.toggle('enhancement-hidden',sector!=='laminacao');
-  var selected=$('operator-person').value,people=app.subordinations.filter(function(item){return item.setor===sector&&(sector!=='laminacao'||item.subsetor===subsetor)});
-  $('operator-person').innerHTML='<option value="">Selecione um colaborador</option>'+people.map(function(person){return'<option value="'+person.id+'"'+(String(person.id)===selected?' selected':'')+'>'+html(person.subordinado)+' — '+html(person.cargo)+'</option>'}).join('');
-  if(!Array.from($('operator-person').options).some(function(option){return option.value===selected}))$('operator-person').value='';
-  renderOperatorQuestions();updateOperatorRegistration();
-}
-function updateOperatorRegistration(){
-  var person=app.subordinations.find(function(item){return String(item.id)===$('operator-person').value}),box=$('operator-registration');
-  box.textContent=person?(person.supervisor?'Cadastro confirmado • Superior: '+person.supervisor:'Cadastro confirmado • Sem superior vinculado'):'Selecione um colaborador cadastrado neste setor e subsetor.';
-  box.style.background=person?'#f0fdf4':'#eff6ff';box.style.color=person?'#166534':'#1d4ed8';
-}
-function renderOperatorQuestions(savedItems){
-  var sector=$('operator-sector').value,subsetor=sector==='laminacao'?$('operator-subsector').value:null,rows=operatorQuestionSet(sector,subsetor),saved={};
-  (savedItems||[]).forEach(function(item){saved[item.id]=item});
-  $('operator-form-title').textContent='Auditoria Operacional — '+sectorLabel(sector)+(subsetor?' / '+subsetLabels[subsetor]:'');
-  var lastGroup='';
-  $('operator-body').innerHTML=rows.map(function(item,index){
-    var group=item.group!==lastGroup?'<tr class="group-row"><td colspan="6">'+html(item.group)+'</td></tr>':'';lastGroup=item.group;
-    var prior=saved[item.id]||{},value=prior.status==='OK'?'ok':prior.status==='Parcial'?'partial':prior.status==='NÃO'?'no':prior.status==='Não se aplica'?'na':'';
-    return group+'<tr data-operator-id="'+item.id+'"><td>'+(index+1)+'</td><td>'+html(item.group)+'</td><td>'+html(item.question)+'</td><td><select class="operator-status"><option value="">Selecione</option><option value="ok"'+(value==='ok'?' selected':'')+'>Conforme</option><option value="partial"'+(value==='partial'?' selected':'')+'>Parcial</option><option value="no"'+(value==='no'?' selected':'')+'>Não conforme</option><option value="na"'+(value==='na'?' selected':'')+'>Não se aplica</option></select></td><td><input class="operator-note" maxlength="500" value="'+html(prior.motivo||'')+'" placeholder="Obrigatório para parcial/não conforme"></td><td>'+html(item.parameter)+'</td></tr>';
-  }).join('');
-  $('operator-body').querySelectorAll('.operator-status').forEach(function(select){select.addEventListener('change',calculateOperatorScore)});
-  calculateOperatorScore();
-}
-function calculateOperatorScore(){
+function operatorSubsetor(form,person){return form.type==='laminacao'&&person?person.subsetor||'laminacao':null}
+function operatorScoreClass(score){return score>95?'nota-verde':score>=70?'nota-azul':score>=50?'nota-amarelo':'nota-vermelho'}
+function calculateIntegratedOperatorScore(form){
   var earned=0,total=0;
-  $('operator-body').querySelectorAll('tr[data-operator-id]').forEach(function(row){
+  form.body.querySelectorAll('tr[data-operator-id]').forEach(function(row){
     var value=row.querySelector('.operator-status').value;row.classList.remove('operator-ok','operator-no');
     if(value==='ok'){earned+=1;total+=1;row.classList.add('operator-ok')}
     else if(value==='partial'){earned+=.5;total+=1;row.classList.add('operator-no')}
     else if(value==='no'){total+=1;row.classList.add('operator-no')}
   });
-  var score=total?earned/total*100:0;$('operator-score').textContent=score.toFixed(2).replace('.',',')+'%';
+  var score=total?earned/total*100:0,note=$(form.config.pfx+'-nota');
+  if(note){note.textContent=score.toFixed(2).replace('.',',')+'%';note.classList.remove('nota-verde','nota-azul','nota-amarelo','nota-vermelho');note.classList.add(operatorScoreClass(score))}
   return score;
 }
-window.switchOperationalAuditTab=async function(){
-  if(!await app.ensureAdmin())return;
-  installOperatorTab();selectAllTabs('tab-operational-audit','operational-audit-tab-btn');
-  await Promise.all([app.loadSubordinations(),app.loadAuditors()]);renderOperatorAuditors();syncOperatorContext();
-};
-window.clearOperatorAudit=function(){
-  editingOperatorAudit=null;$('operator-person').value='';$('operator-auditor').value='';$('operator-date').value=new Date().toISOString().slice(0,10);renderOperatorQuestions();updateOperatorRegistration();
-};
-function operatorReportItems(){
-  var questions=operatorQuestionSet($('operator-sector').value,$('operator-sector').value==='laminacao'?$('operator-subsector').value:null),map={};questions.forEach(function(item){map[item.id]=item});
-  return Array.from($('operator-body').querySelectorAll('tr[data-operator-id]')).map(function(row,index){
+function renderIntegratedOperatorQuestions(form,savedItems,person){
+  person=person||operatorPerson(form);
+  var subsetor=operatorSubsetor(form,person),saved={};
+  (savedItems||[]).forEach(function(item){saved[item.id]=item});
+  form.title.textContent='Auditoria operacional — '+sectorLabel(form.type)+(subsetor?' / '+(subsetLabels[subsetor]||subsetor):'');
+  form.subtitle.textContent=person?(subsetor?'Subsetor do cadastro: '+(subsetLabels[subsetor]||subsetor):'Atividades operacionais do setor'):'Selecione um colaborador operacional cadastrado para carregar o formulário.';
+  if(!person){
+    form.body.innerHTML='<tr><td colspan="6" class="integrated-operator-empty">Selecione o nível “Operacional” e informe um colaborador cadastrado neste setor.</td></tr>';
+    calculateIntegratedOperatorScore(form);return;
+  }
+  var rows=operatorQuestionSet(form.type,subsetor),lastGroup='';
+  form.body.innerHTML=rows.map(function(item,index){
+    var group=item.group!==lastGroup?'<tr class="group-row"><td colspan="6">'+html(item.group)+'</td></tr>':'';lastGroup=item.group;
+    var prior=saved[item.id]||{},value=prior.status==='OK'?'ok':prior.status==='Parcial'?'partial':prior.status==='NÃO'?'no':prior.status==='Não se aplica'?'na':'';
+    return group+'<tr data-operator-id="'+item.id+'"><td>'+(index+1)+'</td><td>'+html(item.group)+'</td><td>'+html(item.question)+'</td><td><select class="operator-status"><option value="">Selecione</option><option value="ok"'+(value==='ok'?' selected':'')+'>Conforme</option><option value="partial"'+(value==='partial'?' selected':'')+'>Parcial</option><option value="no"'+(value==='no'?' selected':'')+'>Não conforme</option><option value="na"'+(value==='na'?' selected':'')+'>Não se aplica</option></select></td><td><input class="operator-note" maxlength="500" value="'+html(prior.motivo||'')+'" placeholder="Obrigatório para parcial/não conforme"></td><td>'+html(item.parameter)+'</td></tr>';
+  }).join('');
+  form.body.querySelectorAll('.operator-status').forEach(function(select){select.addEventListener('change',function(){calculateIntegratedOperatorScore(form)})});
+  calculateIntegratedOperatorScore(form);
+}
+function syncIntegratedOperatorForm(form,force){
+  var operational=form.role.value==='subordinado',person=operatorPerson(form),personId=person?String(person.id)+'|'+String(operatorSubsetor(form,person)||''):'';
+  form.supervisorTable.style.display=operational?'none':'';
+  form.panel.classList.toggle('enhancement-hidden',!operational);
+  form.header.textContent=operational?'Formulário de Auditoria Operacional — '+sectorLabel(form.type):form.baseHeader;
+  if(!operational){
+    form.saveButton.onclick=form.baseSave;form.clearButton.onclick=form.baseClear;form.printButton.onclick=form.basePrint;
+    form.currentPersonId='';
+    return;
+  }
+  form.saveButton.onclick=function(event){event.preventDefault();saveIntegratedOperatorAudit(form.type)};
+  form.clearButton.onclick=function(event){event.preventDefault();clearIntegratedOperatorAudit(form.type)};
+  form.printButton.onclick=function(event){event.preventDefault();window.print()};
+  form.panel.classList.toggle('operator-panel-locked',!person);
+  if(force||form.currentPersonId!==personId){form.currentPersonId=personId;renderIntegratedOperatorQuestions(form,null,person)}
+  form.panel.querySelectorAll('select,input').forEach(function(field){field.disabled=!person});
+}
+function installIntegratedOperatorForms(){
+  ['forno','laminacao','prensa'].forEach(function(type){
+    var config=app.types[type],sheet=config&&$(config.sheet),role=config&&$(config.pfx+'-audited-role');
+    if(!sheet||!role||integratedOperatorForms[type])return;
+    var operatorOption=Array.from(role.options).find(function(option){return option.value==='subordinado'});if(operatorOption)operatorOption.textContent='Operacional / subordinado';
+    var supervisorTable=sheet.querySelector('table.audit-table'),actions=sheet.querySelector('.form-actions'),saveButton=actions&&actions.querySelector('.btn-save'),clearButton=actions&&actions.querySelector('.btn-clear'),printButton=actions&&actions.querySelector('.btn-print'),header=sheet.querySelector('.fh-title'),name=$(config.pfx+'-nome');
+    if(!supervisorTable||!saveButton||!clearButton||!printButton||!header||!name)return;
+    supervisorTable.classList.add('supervisor-audit-table');
+    var panel=document.createElement('section');panel.id=config.pfx+'-operator-panel';panel.className='integrated-operator-panel enhancement-hidden';
+    panel.innerHTML='<header class="integrated-operator-head"><div><h3 id="'+config.pfx+'-operator-title">Auditoria operacional — '+html(sectorLabel(type))+'</h3><p id="'+config.pfx+'-operator-subtitle">Selecione um colaborador operacional cadastrado para carregar o formulário.</p></div><span>Conhecimento técnico • Segurança • 5S</span></header><div class="operator-table-wrap"><table class="operator-table"><thead><tr><th style="width:48px">#</th><th style="width:82px">Grupo</th><th>Conhecimento / execução avaliada</th><th class="status-cell">Resultado</th><th class="note-cell">Apontamento / evidência</th><th>Parâmetro</th></tr></thead><tbody id="'+config.pfx+'-operator-body"></tbody></table></div>';
+    supervisorTable.insertAdjacentElement('beforebegin',panel);
+    var form={type:type,config:config,sheet:sheet,role:role,name:name,header:header,baseHeader:header.textContent,supervisorTable:supervisorTable,panel:panel,title:$(config.pfx+'-operator-title'),subtitle:$(config.pfx+'-operator-subtitle'),body:$(config.pfx+'-operator-body'),saveButton:saveButton,clearButton:clearButton,printButton:printButton,baseSave:saveButton.onclick,baseClear:clearButton.onclick,basePrint:printButton.onclick,currentPersonId:''};
+    integratedOperatorForms[type]=form;
+    role.addEventListener('change',function(){editingOperatorAudit=null;if(app.clearAuditEditing)app.clearAuditEditing();syncIntegratedOperatorForm(form,true)});
+    name.addEventListener('input',function(){if(editingOperatorAudit&&editingOperatorAudit.type===type&&key(editingOperatorAudit.team)!==key(name.value)){editingOperatorAudit=null;var notice=$('editAuditNotice');if(notice)notice.remove()}syncIntegratedOperatorForm(form)});
+    syncIntegratedOperatorForm(form,true);
+  });
+}
+function integratedOperatorReportItems(form,person){
+  var subsetor=operatorSubsetor(form,person),questions=operatorQuestionSet(form.type,subsetor),map={};questions.forEach(function(item){map[item.id]=item});
+  return Array.from(form.body.querySelectorAll('tr[data-operator-id]')).map(function(row,index){
     var config=map[row.dataset.operatorId],value=row.querySelector('.operator-status').value,status=value==='ok'?'OK':value==='partial'?'Parcial':value==='no'?'NÃO':value==='na'?'Não se aplica':'Não avaliado';
     return{id:row.dataset.operatorId,group:config.group,num:String(index+1),question:config.question,value:value==='partial'?'0,5':value==='na'?'N/A':'1',parameter:config.parameter,status:status,motivo:row.querySelector('.operator-note').value.trim()};
   });
 }
-function operatorPdf(record){
+function integratedOperatorPdf(form,record){
   if(typeof html2pdf!=='function')return;
-  var copy=$('operator-sheet').cloneNode(true);copy.style.cssText='position:fixed;left:-20000px;top:0;width:1150px;background:#fff;z-index:-1';
-  copy.querySelectorAll('.operator-actions').forEach(function(item){item.remove()});
-  copy.insertAdjacentHTML('afterbegin','<div style="display:grid;grid-template-columns:repeat(5,1fr);gap:1px;background:#cbd5e1;font:10px Arial"><div style="background:#fff;padding:8px"><b>Auditado</b><br>'+html(record.team)+'</div><div style="background:#fff;padding:8px"><b>Setor</b><br>'+html(sectorLabel(record.type))+'</div><div style="background:#fff;padding:8px"><b>Subsetor</b><br>'+html(subsetLabels[record.subsetor]||'—')+'</div><div style="background:#fff;padding:8px"><b>Auditor</b><br>'+html(record.report.auditorName)+'</div><div style="background:#fff;padding:8px"><b>Data / Nota</b><br>'+html(record.date)+' • '+record.score.toFixed(2).replace('.',',')+'%</div></div>');
-  copy.querySelectorAll('select').forEach(function(select){var span=document.createElement('span');span.textContent=select.options[select.selectedIndex]&&select.options[select.selectedIndex].textContent||'';select.replaceWith(span)});
-  copy.querySelectorAll('input').forEach(function(input){var span=document.createElement('span');span.textContent=input.value||'—';input.replaceWith(span)});
+  var copy=form.sheet.cloneNode(true);copy.style.cssText='position:fixed;left:-20000px;top:0;width:1150px;background:#fff;z-index:-1';
+  copy.querySelectorAll('.form-actions,.audit-context-row,.supervisor-audit-table').forEach(function(item){item.remove()});
+  var metadata='<div class="integrated-operator-pdf-meta"><div><b>Auditado</b><br>'+html(record.team)+'</div><div><b>Setor</b><br>'+html(sectorLabel(record.type))+'</div><div><b>Subsetor</b><br>'+html(subsetLabels[record.subsetor]||'—')+'</div><div><b>Auditor</b><br>'+html(record.report.auditorName)+'</div><div><b>Data / Nota</b><br>'+html(record.date)+' • '+record.score.toFixed(2).replace('.',',')+'%</div></div>';
+  var formHeader=copy.querySelector('.form-header');if(formHeader)formHeader.insertAdjacentHTML('afterend',metadata);else copy.insertAdjacentHTML('afterbegin',metadata);
+  copy.querySelectorAll('select').forEach(function(select){var span=document.createElement('span');span.textContent=select.options[select.selectedIndex]&&select.options[select.selectedIndex].textContent||'—';select.replaceWith(span)});
+  copy.querySelectorAll('input,textarea').forEach(function(input){var span=document.createElement('span');span.textContent=input.value||'—';input.replaceWith(span)});
   document.body.appendChild(copy);
   html2pdf().set({margin:[5,5,5,5],filename:'Auditoria_Operacional_'+record.type+'_'+record.team.replace(/\s+/g,'_')+'_'+record.date+'.pdf',image:{type:'jpeg',quality:.98},html2canvas:{scale:2},jsPDF:{unit:'mm',format:'a4',orientation:'landscape'}}).from(copy).save().then(function(){copy.remove()},function(){copy.remove();toast('⚠️ Auditoria salva, mas o PDF não foi gerado.')});
 }
-window.saveOperatorAudit=async function(){
+async function saveIntegratedOperatorAudit(type){
   if(!await app.ensureAdmin())return;
-  var person=app.subordinations.find(function(item){return String(item.id)===$('operator-person').value}),auditor=app.auditors.find(function(item){return String(item.id)===$('operator-auditor').value});
-  if(!person){toast('⚠️ Selecione um colaborador operacional cadastrado.');return}
-  if(!auditor){toast('⚠️ Selecione um auditor cadastrado.');return}
-  var items=operatorReportItems(),missing=items.some(function(item){return item.status==='Não avaliado'}),missingNote=items.some(function(item){return(item.status==='Parcial'||item.status==='NÃO')&&!item.motivo});
+  var form=integratedOperatorForms[type],person=form&&operatorPerson(form),auditorField=$(form.config.pfx+'-sig1'),auditor=app.auditors.find(function(item){return auditorField&&String(item.id)===String(auditorField.value)});
+  if(!person){toast('⚠️ Selecione um colaborador operacional cadastrado neste setor.');return}
+  if(!auditor){toast('⚠️ Selecione um auditor cadastrado no sistema.');return}
+  var items=integratedOperatorReportItems(form,person),missing=items.some(function(item){return item.status==='Não avaliado'}),missingNote=items.some(function(item){return(item.status==='Parcial'||item.status==='NÃO')&&!item.motivo});
   if(missing){toast('⚠️ Avalie todos os itens ou marque “Não se aplica”.');return}
   if(missingNote){toast('⚠️ Registre o apontamento nos itens parciais ou não conformes.');return}
-  var score=calculateOperatorScore(),sector=$('operator-sector').value,subsetor=sector==='laminacao'?$('operator-subsector').value:null,date=$('operator-date').value;
-  var report={savedAt:new Date().toISOString(),items:items,auditorName:auditor.nome,auditedRole:'subordinado',supervisorName:person.supervisor||'',subsetor:subsetor,operatorAudit:true};
-  var record={id:editingOperatorAudit?Number(editingOperatorAudit.id):Date.now(),type:sector,team:person.subordinado,date:date,cargo:person.cargo,score:+score.toFixed(2),totalOk:items.filter(function(item){return item.status==='OK'}).length,totalNo:items.filter(function(item){return item.status==='NÃO'||item.status==='Parcial'}).length,supervisorName:person.supervisor||'',auditedRole:'subordinado',subsetor:subsetor,report:report};
-  var button=$('operator-save');button.disabled=true;button.textContent='Salvando...';
+  var date=$(form.config.pfx+'-data').value;if(!date){toast('⚠️ Informe a data da auditoria.');return}
+  var score=calculateIntegratedOperatorScore(form),subsetor=operatorSubsetor(form,person),report={savedAt:new Date().toISOString(),items:items,auditorName:auditor.nome,auditedRole:'subordinado',supervisorName:person.supervisor||'',subsetor:subsetor,operatorAudit:true};
+  var record={id:editingOperatorAudit&&editingOperatorAudit.type===type?Number(editingOperatorAudit.id):Date.now(),type:type,team:person.subordinado,date:date,cargo:person.cargo,score:+score.toFixed(2),totalOk:items.filter(function(item){return item.status==='OK'}).length,totalNo:items.filter(function(item){return item.status==='NÃO'||item.status==='Parcial'}).length,supervisorName:person.supervisor||'',auditedRole:'subordinado',subsetor:subsetor,report:report};
+  var button=form.saveButton,originalText=button.textContent;button.disabled=true;button.textContent='Salvando...';
   try{
     await app.rpc('save_auditoria',{p_password:app.adminPassword,p_audit_id:record.id,p_type:record.type,p_team:record.team,p_audit_date:record.date,p_cargo:record.cargo,p_score:record.score,p_total_ok:record.totalOk,p_total_no:record.totalNo,p_report:record.report,p_supervisor_name:record.supervisorName||null,p_audited_role:'subordinado',p_subsetor:record.subsetor});
     var saved=app.allSaved(),index=saved.findIndex(function(item){return Number(item.id)===record.id});if(index>=0)saved[index]=record;else saved.push(record);app.setLocal(saved);
-    operatorPdf(record);window.clearOperatorAudit();renderSaved('all');if(window.rebuildAuditDashboard)window.rebuildAuditDashboard();window.refreshDash();toast('✅ Auditoria operacional salva e vinculada ao acompanhamento do superior.');
+    integratedOperatorPdf(form,record);clearIntegratedOperatorAudit(type);renderSaved('all');if(window.rebuildAuditDashboard)window.rebuildAuditDashboard();window.refreshDash();toast(record.supervisorName?'✅ Auditoria operacional salva e vinculada a '+record.supervisorName+'.':'✅ Auditoria operacional salva para o colaborador cadastrado.');
   }catch(error){toast('❌ Não foi possível salvar: '+error.message)}
-  finally{button.disabled=false;button.textContent='💾 Salvar + PDF'}
-};
-window.printOperatorAudit=function(){document.body.classList.add('operator-printing');window.print();setTimeout(function(){document.body.classList.remove('operator-printing')},800)};
+  finally{button.disabled=false;button.textContent=originalText}
+}
+function clearIntegratedOperatorAudit(type){
+  var form=integratedOperatorForms[type];if(!form)return;
+  editingOperatorAudit=null;var notice=$('editAuditNotice');if(notice)notice.remove();
+  form.name.value='';var auditor=$(form.config.pfx+'-sig1'),audited=$(form.config.pfx+'-sig2'),cargo=$(form.config.pfx+'-cargo'),date=$(form.config.pfx+'-data');if(auditor)auditor.value='';if(audited)audited.value='';if(cargo)cargo.value='';if(date)date.value=new Date().toISOString().slice(0,10);
+  form.currentPersonId='';form.name.dispatchEvent(new Event('input',{bubbles:true}));syncIntegratedOperatorForm(form,true);
+}
 var baseEditSavedAudit=window.editSavedAudit;
 window.editSavedAudit=async function(id){
   if(!await app.ensureAdmin())return;
   var audit=app.allSaved().find(function(item){return Number(item.id)===Number(id)});
-  if(!(audit&&audit.report&&audit.report.operatorAudit))return baseEditSavedAudit(id);
-  editingOperatorAudit=audit;installOperatorTab();await Promise.all([app.loadSubordinations(),app.loadAuditors()]);
-  $('operator-sector').value=audit.type;$('operator-subsector').value=audit.subsetor||audit.report.subsetor||'laminacao';syncOperatorContext();
-  var person=app.subordinations.find(function(item){return item.setor===audit.type&&key(item.subordinado)===key(audit.team)});if(person)$('operator-person').value=String(person.id);
-  var auditor=app.auditors.find(function(item){return key(item.nome)===key(audit.report.auditorName)});renderOperatorAuditors(auditor&&auditor.id);
-  $('operator-date').value=audit.date;renderOperatorQuestions(audit.report.items);updateOperatorRegistration();selectAllTabs('tab-operational-audit','operational-audit-tab-btn');toast('✏️ Auditoria operacional aberta para edição.');
+  if(!(audit&&audit.report&&audit.report.operatorAudit)){
+    var standardForm=audit&&integratedOperatorForms[audit.type];if(standardForm){standardForm.role.value='supervisor';syncIntegratedOperatorForm(standardForm,true)}
+    return baseEditSavedAudit(id);
+  }
+  var form=integratedOperatorForms[audit.type];if(!form){toast('⚠️ Formulário operacional não encontrado para este setor.');return}
+  await Promise.all([app.loadSubordinations(),app.loadAuditors()]);
+  form.role.value='subordinado';form.name.value=audit.team;form.role.dispatchEvent(new Event('change',{bubbles:true}));form.name.dispatchEvent(new Event('input',{bubbles:true}));
+  editingOperatorAudit=audit;
+  var person=operatorPerson(form),auditor=app.auditors.find(function(item){return key(item.nome)===key(audit.report.auditorName)}),auditorField=$(form.config.pfx+'-sig1');
+  $(form.config.pfx+'-data').value=audit.date;$(form.config.pfx+'-cargo').value=audit.cargo;if(auditorField)auditorField.value=auditor?String(auditor.id):'';
+  form.currentPersonId=person?String(person.id)+'|'+String(operatorSubsetor(form,person)||''):'';renderIntegratedOperatorQuestions(form,audit.report.items,person);syncIntegratedOperatorForm(form);
+  selectAllTabs(form.config.tab);var tabButton=Array.from(document.querySelectorAll('.tab-bar .tab-btn')).find(function(item){var code=item.getAttribute('onclick')||'';return item.id==='press-tab-btn'&&audit.type==='prensa'||code.indexOf("switchTab('"+audit.type+"')")>=0});if(tabButton)tabButton.classList.add('active');
+  var oldNotice=$('editAuditNotice');if(oldNotice)oldNotice.remove();var note=document.createElement('div');note.id='editAuditNotice';note.className='operator-edit-notice';note.textContent='✏️ Editando auditoria operacional salva. Ao salvar, este registro será atualizado.';form.panel.insertAdjacentElement('beforebegin',note);
+  toast('✏️ Auditoria operacional aberta na aba de '+sectorLabel(audit.type)+'.');
 };
 var baseViewSavedReport=window.viewSavedReport;
 window.viewSavedReport=async function(id){
@@ -730,14 +762,6 @@ window.viewSavedReport=async function(id){
     meta.insertAdjacentHTML('beforeend','<div><strong>FORMULÁRIO</strong>Auditoria operacional</div><div><strong>SUBSETOR</strong>'+html(subsetLabels[audit.subsetor||audit.report.subsetor]||'Não se aplica')+'</div>');
   }
 };
-function restrictSupervisorForms(){
-  ['forno','laminacao','prensa'].forEach(function(type){
-    var config=app.types[type],role=config&&$(config.pfx+'-audited-role');if(!role)return;
-    Array.from(role.options).filter(function(option){return option.value==='subordinado'}).forEach(function(option){option.remove()});
-    var state=$(config.pfx+'-registration-state');
-    if(state&&state.parentElement)state.parentElement.lastChild.textContent=' Use a aba Auditoria Operacional para avaliar operadores deste setor.';
-  });
-}
 
 /* ------------------------------------------------------------------------ */
 /* Navegação e inicialização.                                                */
@@ -746,12 +770,11 @@ function restrictSupervisorForms(){
 function syncEnhancedNavigation(){
   var admin=activeAdmin();
   if($('kaizen-tab-btn'))$('kaizen-tab-btn').style.display='';
-  if($('operational-audit-tab-btn'))$('operational-audit-tab-btn').style.display=admin?'':'none';
   if($('action-status-filter'))$('action-status-filter').closest('label').style.display=admin?'':'none';
 }
-installHierarchySubsetor();installMatrixSubsetor();installActionEnhancements();installSuggestionEnhancements();installKaizenTab();installOperatorTab();
-restrictSupervisorForms();decorateSubordinationTable();syncEnhancedNavigation();
-var access=$('admin-access-btn');if(access)new MutationObserver(function(){setTimeout(function(){syncEnhancedNavigation();restrictSupervisorForms()},0)}).observe(access,{childList:true,characterData:true,subtree:true});
+installHierarchySubsetor();installMatrixSubsetor();installActionEnhancements();installSuggestionEnhancements();installKaizenTab();installIntegratedOperatorForms();
+decorateSubordinationTable();syncEnhancedNavigation();
+var access=$('admin-access-btn');if(access)new MutationObserver(function(){setTimeout(function(){syncEnhancedNavigation();Object.keys(integratedOperatorForms).forEach(function(type){syncIntegratedOperatorForm(integratedOperatorForms[type])})},0)}).observe(access,{childList:true,characterData:true,subtree:true});
 if(location.hash==='#kaizen')setTimeout(window.switchKaizenTab,100);
 window.addEventListener('hashchange',function(){if(location.hash==='#kaizen')window.switchKaizenTab()});
 setTimeout(function(){refreshPublicAudits();renderQualityChart();syncEnhancedNavigation()},700);
