@@ -32,3 +32,29 @@
   body.kaizen-printing{margin:0!important;background:#fff!important}
   body.kaizen-printing .kaizen-poster{margin:0}
 }
+/* Dashboard em largura total: o canvas usa toda a área disponível do cartão. */
+#tab-dashboard .dash-card-full{width:100%;min-width:0}
+#tab-dashboard .dash-card-full canvas{display:block!important;width:100%!important;max-width:none!important;height:auto!important;margin:0!important}
+
+/* Editor dos formulários de auditoria. */
+.form-editor-button{background:#e0f2fe!important;color:#075985!important;border:1px solid #7dd3fc!important}
+.audit-form-editor-overlay{display:none;position:fixed;inset:0;z-index:6400;background:rgba(15,23,42,.72);padding:20px;overflow:auto}
+.audit-form-editor-overlay.open{display:flex;align-items:flex-start;justify-content:center}
+.audit-form-editor-card{width:min(1420px,100%);max-height:calc(100vh - 40px);display:flex;flex-direction:column;background:#f8fafc;border-radius:12px;overflow:hidden;box-shadow:0 24px 70px rgba(0,0,0,.35)}
+.audit-form-editor-card>header{display:flex;justify-content:space-between;gap:20px;align-items:flex-start;background:#172033;color:#fff;padding:16px 20px}
+.audit-form-editor-card>header span{font-size:8px;font-weight:900;letter-spacing:.12em;color:#86efac}
+.audit-form-editor-card>header h2{font-size:17px;margin:2px 0}
+.audit-form-editor-card>header p{font-size:9px;color:#cbd5e1}
+.audit-form-editor-toolbar,.audit-form-editor-card>footer{display:flex;align-items:center;gap:8px;padding:10px 14px;background:#fff;border-bottom:1px solid #dbe3ea}
+.audit-form-editor-toolbar span{margin-left:auto;color:#64748b;font-size:9px;font-weight:800}
+.audit-form-editor-card>footer{justify-content:flex-end;border-top:1px solid #dbe3ea;border-bottom:0}
+.audit-form-editor-list{padding:12px;overflow:auto;display:flex;flex-direction:column;gap:8px}
+.form-editor-row{display:grid;grid-template-columns:55px minmax(115px,.7fr) minmax(280px,2fr) 92px minmax(260px,1.5fr) 34px;align-items:start;gap:8px;padding:9px;background:#fff;border:1px solid #dbe3ea;border-radius:8px}
+.form-editor-row label{display:flex;flex-direction:column;gap:4px;color:#475569;font-size:8px;font-weight:900}
+.form-editor-row input,.form-editor-row textarea{width:100%;border:1px solid #cbd5e1;border-radius:5px;padding:7px;background:#fff;color:#0f172a;font:10px/1.35 system-ui;resize:vertical}
+.form-editor-row textarea{min-height:52px}
+.form-editor-order{display:grid;grid-template-columns:1fr 1fr;gap:3px;text-align:center}
+.form-editor-order strong{grid-column:1/-1;color:#166534;padding-top:3px}
+.form-editor-order button,.form-editor-remove{border:0;border-radius:4px;background:#e2e8f0;color:#334155;cursor:pointer;padding:4px;font-weight:900}
+.form-editor-remove{margin-top:17px;background:#fee2e2;color:#b91c1c;height:30px}
+@media(max-width:900px){.audit-form-editor-overlay{padding:8px}.audit-form-editor-card{max-height:calc(100vh - 16px)}.form-editor-row{grid-template-columns:48px 1fr 88px 34px}.form-editor-question,.form-editor-parameter{grid-column:2/-1}.form-editor-remove{grid-column:4;grid-row:1}.audit-form-editor-toolbar{flex-wrap:wrap}.audit-form-editor-toolbar span{width:100%;margin-left:0}}

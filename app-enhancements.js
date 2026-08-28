@@ -22,6 +22,33 @@ function selectAllTabs(id,buttonId){
 /* Dashboard: recarrega o histórico online e usa o nome canônico atual.     */
 /* ------------------------------------------------------------------------ */
 
+function responsiveEvolutionChart(cid,allScores,teamList,colors,proc,subtitle){
+  var canvas=$(cid);if(!canvas)return;
+  var holder=canvas.closest('.dash-card')||canvas.parentElement,available=holder&&holder.clientWidth?holder.clientWidth-28:1100;
+  var W=Math.max(860,Math.min(1900,Math.round(available))),H=410;
+  if(canvas.width!==W)canvas.width=W;if(canvas.height!==H)canvas.height=H;
+  canvas.style.width='100%';canvas.style.maxWidth='none';canvas.style.height='auto';canvas.style.margin='0';
+  var scores=allScores.filter(function(item){return item.process===proc}),ctx=canvas.getContext('2d');
+  ctx.clearRect(0,0,W,H);ctx.fillStyle='#fff';ctx.fillRect(0,0,W,H);
+  if(!scores.length){ctx.fillStyle='#64748b';ctx.font='13px system-ui';ctx.textAlign='center';ctx.fillText('Sem dados alimentados para este setor.',W/2,H/2);return}
+  var palette=colors&&colors.length?colors:['#2563eb','#16a34a','#d97706','#7c3aed','#0891b2','#db2777','#65a30d','#c2410c'],teamData=[];
+  teamList.forEach(function(team,index){var rows=scores.filter(function(item){return item.team===team}).sort(function(a,b){return MONTHS.indexOf(a.month)-MONTHS.indexOf(b.month)||Number(a.week)-Number(b.week)});if(rows.length)teamData.push({name:String(team).split(': ')[1]||team,scores:rows.map(function(item){return Number(item.score)}),color:palette[index%palette.length]})});
+  if(!teamData.length)return;
+  var count=Math.max.apply(null,teamData.map(function(item){return item.scores.length})),left=60,right=W-24,top=34,bottom=H-88,plotW=right-left,plotH=bottom-top,groupW=plotW/teamData.length,gap=Math.max(3,Math.min(8,groupW*.025)),barW=Math.max(12,Math.min(42,(groupW-18-(count-1)*gap)/count)),barsW=count*barW+(count-1)*gap;
+  function y(value){return bottom-(value/100)*plotH}
+  ctx.fillStyle='#475569';ctx.font='11px system-ui';ctx.textAlign='center';ctx.fillText(subtitle,W/2,18);
+  for(var tick=0;tick<=100;tick+=10){var py=y(tick);ctx.strokeStyle='#edf2f7';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(left,py);ctx.lineTo(right,py);ctx.stroke();if(tick%20===0){ctx.fillStyle='#94a3b8';ctx.font='9px system-ui';ctx.textAlign='right';ctx.fillText(tick+'%',left-6,py+3)}}
+  [[95,'#22c55e','> 95% EXCELENTE'],[80,'#3b82f6','80% BOM'],[60,'#ef4444','< 60% CRÍTICO']].forEach(function(rule){var py=y(rule[0]);ctx.strokeStyle=rule[1];ctx.lineWidth=2;ctx.setLineDash([8,4]);ctx.beginPath();ctx.moveTo(left,py);ctx.lineTo(right,py);ctx.stroke();ctx.setLineDash([]);ctx.font='700 9px system-ui';var labelW=ctx.measureText(rule[2]).width+10;ctx.fillStyle=rule[1];ctx.fillRect(left+2,py-12,labelW,14);ctx.fillStyle='#fff';ctx.textAlign='left';ctx.fillText(rule[2],left+6,py-2)});
+  teamData.forEach(function(person,personIndex){var groupX=left+personIndex*groupW,start=groupX+(groupW-barsW)/2,points=[];
+    person.scores.forEach(function(score,auditIndex){var x=start+auditIndex*(barW+gap),barTop=y(score),barHeight=bottom-barTop,color=score>95?'#16a34a':score>=80?'#3b82f6':score>=60?'#eab308':'#dc2626',gradient=ctx.createLinearGradient(x,barTop,x,bottom);gradient.addColorStop(0,color);gradient.addColorStop(1,color+'aa');ctx.fillStyle=gradient;ctx.beginPath();ctx.roundRect?ctx.roundRect(x,barTop,barW,barHeight,[4,4,0,0]):ctx.rect(x,barTop,barW,barHeight);ctx.fill();points.push({x:x+barW/2,y:barTop});ctx.fillStyle='#111827';ctx.font='700 '+(barW<23?8:10)+'px system-ui';ctx.textAlign='center';ctx.fillText(score.toFixed(barW<23?0:2)+'%',x+barW/2,Math.max(top+8,barTop-7));ctx.fillStyle='rgba(17,24,39,.92)';ctx.font='800 '+(barW<23?12:15)+'px system-ui';ctx.fillText(String(auditIndex+1),x+barW/2,barTop+18);ctx.fillStyle='rgba(255,255,255,.9)';ctx.font='700 8px system-ui';ctx.fillText((auditIndex+1)+'ª',x+barW/2,bottom-5)});
+    ctx.strokeStyle=person.color;ctx.lineWidth=2.5;ctx.beginPath();points.forEach(function(point,index){if(index)ctx.lineTo(point.x,point.y);else ctx.moveTo(point.x,point.y)});ctx.stroke();points.forEach(function(point){ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(point.x,point.y,4.5,0,Math.PI*2);ctx.fill();ctx.strokeStyle=person.color;ctx.lineWidth=2;ctx.stroke()});
+    ctx.fillStyle=person.color;ctx.font='700 11px system-ui';ctx.textAlign='center';ctx.fillText(person.name,groupX+groupW/2,bottom+19);var delta=person.scores[person.scores.length-1]-person.scores[0],positive=delta>=0;ctx.fillStyle=positive?'#16a34a':'#dc2626';ctx.font='700 9px system-ui';ctx.fillText((positive?'▲ +':'▼ ')+delta.toFixed(1)+' pts',groupX+groupW/2,bottom+34);
+  });
+  var legends=[['> 95% Excelente','#16a34a'],['80-95% Bom','#3b82f6'],['60-80% Regular','#eab308'],['< 60% Crítico','#dc2626']],legendY=H-24,legendX=left;ctx.font='9px system-ui';legends.forEach(function(item){ctx.fillStyle=item[1];ctx.fillRect(legendX,legendY-8,9,9);ctx.fillStyle='#475569';ctx.textAlign='left';ctx.fillText(item[0],legendX+13,legendY);legendX+=Math.min(132,ctx.measureText(item[0]).width+32)});
+}
+window.buildEvo=responsiveEvolutionChart;
+buildEvo=responsiveEvolutionChart;
+
 function qualityTeams(scores){
   var seen={},rows=[];
   scores.filter(function(item){return item.process==='Qualidade / Laboratório'}).sort(function(a,b){
@@ -38,6 +65,7 @@ function renderQualityChart(){
 }
 var baseRefreshDash=window.refreshDash;
 window.refreshDash=function(){baseRefreshDash();renderQualityChart()};
+var dashboardResizeTimer=0;window.addEventListener('resize',function(){clearTimeout(dashboardResizeTimer);dashboardResizeTimer=setTimeout(function(){if($('tab-dashboard')&&$('tab-dashboard').classList.contains('active'))window.refreshDash()},180)});
 
 async function refreshPublicAudits(){
   if(activeAdmin())return;
@@ -737,22 +765,7 @@ function clearIntegratedOperatorAudit(type){
 }
 var baseEditSavedAudit=window.editSavedAudit;
 window.editSavedAudit=async function(id){
-  if(!await app.ensureAdmin())return;
-  var audit=app.allSaved().find(function(item){return Number(item.id)===Number(id)});
-  if(!(audit&&audit.report&&audit.report.operatorAudit)){
-    var standardForm=audit&&integratedOperatorForms[audit.type];if(standardForm){standardForm.role.value='supervisor';syncIntegratedOperatorForm(standardForm,true)}
-    return baseEditSavedAudit(id);
-  }
-  var form=integratedOperatorForms[audit.type];if(!form){toast('⚠️ Formulário operacional não encontrado para este setor.');return}
-  await Promise.all([app.loadSubordinations(),app.loadAuditors()]);
-  form.role.value='subordinado';form.name.value=audit.team;form.role.dispatchEvent(new Event('change',{bubbles:true}));form.name.dispatchEvent(new Event('input',{bubbles:true}));
-  editingOperatorAudit=audit;
-  var person=operatorPerson(form),auditor=app.auditors.find(function(item){return key(item.nome)===key(audit.report.auditorName)}),auditorField=$(form.config.pfx+'-sig1');
-  $(form.config.pfx+'-data').value=audit.date;$(form.config.pfx+'-cargo').value=audit.cargo;if(auditorField)auditorField.value=auditor?String(auditor.id):'';
-  form.currentPersonId=person?String(person.id)+'|'+String(operatorSubsetor(form,person)||''):'';renderIntegratedOperatorQuestions(form,audit.report.items,person);syncIntegratedOperatorForm(form);
-  selectAllTabs(form.config.tab);var tabButton=Array.from(document.querySelectorAll('.tab-bar .tab-btn')).find(function(item){var code=item.getAttribute('onclick')||'';return item.id==='press-tab-btn'&&audit.type==='prensa'||code.indexOf("switchTab('"+audit.type+"')")>=0});if(tabButton)tabButton.classList.add('active');
-  var oldNotice=$('editAuditNotice');if(oldNotice)oldNotice.remove();var note=document.createElement('div');note.id='editAuditNotice';note.className='operator-edit-notice';note.textContent='✏️ Editando auditoria operacional salva. Ao salvar, este registro será atualizado.';form.panel.insertAdjacentElement('beforebegin',note);
-  toast('✏️ Auditoria operacional aberta na aba de '+sectorLabel(audit.type)+'.');
+  return baseEditSavedAudit(id);
 };
 var baseViewSavedReport=window.viewSavedReport;
 window.viewSavedReport=async function(id){
@@ -764,6 +777,73 @@ window.viewSavedReport=async function(id){
 };
 
 /* ------------------------------------------------------------------------ */
+/* Apresentação A4: ranking compacto repetido e quatro áreas por folha.     */
+/* ------------------------------------------------------------------------ */
+
+function reportRankingAllPeople(scores,month){
+  var grouped={};scores.filter(function(score){return month==null||score.month===month}).forEach(function(score){var name=String(score.team||'').trim();if(!name)return;if(!grouped[name])grouped[name]={total:0,count:0};grouped[name].total+=Number(score.score||0);grouped[name].count++});
+  return Object.keys(grouped).map(function(name){return{team:name,avg:grouped[name].total/grouped[name].count,count:grouped[name].count}}).sort(function(a,b){return b.avg-a.avg||a.team.localeCompare(b.team,'pt-BR')});
+}
+rankForReport=reportRankingAllPeople;
+
+function normalizedExecutiveProcess(value){var text=String(value||'').trim(),search=text.toLocaleLowerCase('pt-BR');if(search.indexOf('laborat')>=0||search.indexOf('qualidade')>=0)return'Qualidade / Laboratório';if(search.indexOf('seguran')>=0)return'Segurança do Trabalho';return text}
+function executiveProcessGroups(scores){
+  var grouped={};scores.forEach(function(score){var process=normalizedExecutiveProcess(score.process);if(!process)return;if(!grouped[process])grouped[process]=[];grouped[process].push(score)});
+  var order=['Processo 3','Processo 4','Prensa','Refratário','Qualidade / Laboratório','Segurança do Trabalho','Engenharia','PCP','Caldeiraria','Manutenção Mecânica','Manutenção Elétrica','Manutenção de Veículos','Lavador','Almoxarifado','Compras','Comercial','Financeiro','RH','TI'];
+  return Object.keys(grouped).sort(function(a,b){var ai=order.indexOf(a),bi=order.indexOf(b);return(ai<0?999:ai)-(bi<0?999:bi)||a.localeCompare(b,'pt-BR')}).map(function(process){return{process:process,rows:grouped[process]}});
+}
+function fitCanvasText(ctx,value,width){var text=String(value||'');if(ctx.measureText(text).width<=width)return text;while(text.length>2&&ctx.measureText(text+'…').width>width)text=text.slice(0,-1);return text+'…'}
+function drawCompactRanking(ctx,x,y,w,title,rows){
+  ctx.fillStyle='#f8fafc';ctx.strokeStyle='#cbd5e1';ctx.lineWidth=1;ctx.beginPath();ctx.roundRect?ctx.roundRect(x,y,w,178,10):ctx.rect(x,y,w,178);ctx.fill();ctx.stroke();ctx.fillStyle='#172033';ctx.font='700 18px Arial';ctx.textAlign='left';ctx.fillText(title,x+18,y+27);
+  var visible=rows.slice(0,6),columns=3,itemW=(w-34)/columns,itemH=59;
+  visible.forEach(function(row,index){var col=index%columns,line=Math.floor(index/columns),left=x+13+col*itemW,top=y+39+line*itemH;ctx.fillStyle=index<3?'#ecfdf5':'#fff';ctx.strokeStyle='#e2e8f0';ctx.beginPath();ctx.roundRect?ctx.roundRect(left,top,itemW-8,49,6):ctx.rect(left,top,itemW-8,49);ctx.fill();ctx.stroke();ctx.fillStyle='#166534';ctx.font='700 15px Arial';ctx.fillText((index+1)+'º',left+10,top+20);ctx.fillStyle='#172033';ctx.font='700 14px Arial';ctx.fillText(fitCanvasText(ctx,row.team,itemW-105),left+42,top+20);ctx.fillStyle='#475569';ctx.font='12px Arial';ctx.fillText(row.count+' aud.',left+42,top+39);ctx.fillStyle='#166534';ctx.font='700 15px Arial';ctx.textAlign='right';ctx.fillText(row.avg.toFixed(1).replace('.',',')+'%',left+itemW-18,top+30);ctx.textAlign='left'});
+  if(rows.length>visible.length){ctx.fillStyle='#64748b';ctx.font='11px Arial';ctx.textAlign='right';ctx.fillText('+'+(rows.length-visible.length)+' no ranking completo',x+w-16,y+169);ctx.textAlign='left'}
+}
+function drawExecutiveArea(ctx,group,x,y,w,h){
+  var rows=group.rows,avg=rows.reduce(function(sum,row){return sum+Number(row.score||0)},0)/rows.length,teams=[];rows.forEach(function(row){if(teams.indexOf(row.team)<0)teams.push(row.team)});
+  ctx.fillStyle='#fff';ctx.strokeStyle='#cbd5e1';ctx.lineWidth=1;ctx.beginPath();ctx.roundRect?ctx.roundRect(x,y,w,h,10):ctx.rect(x,y,w,h);ctx.fill();ctx.stroke();ctx.fillStyle='#166534';ctx.fillRect(x,y,6,h);ctx.fillStyle='#172033';ctx.font='700 18px Arial';ctx.textAlign='left';ctx.fillText(fitCanvasText(ctx,executiveProcessLabel(group.process),w-190),x+20,y+28);ctx.fillStyle='#166534';ctx.font='700 17px Arial';ctx.textAlign='right';ctx.fillText(avg.toFixed(2).replace('.',',')+'%',x+w-18,y+28);ctx.fillStyle='#64748b';ctx.font='11px Arial';ctx.fillText(teams.length+' auditado(s) • '+rows.length+' registro(s)',x+w-18,y+46);ctx.textAlign='left';
+  var chart=processTrendImage(group.process,rows,true);ctx.drawImage(chart,x+18,y+57,w-34,h-72);
+}
+function executivePageCanvas(scores,groups,pageIndex,totalPages){
+  var canvas=document.createElement('canvas'),ctx=canvas.getContext('2d'),W=1684,H=1190;canvas.width=W;canvas.height=H;ctx.fillStyle='#fff';ctx.fillRect(0,0,W,H);ctx.fillStyle='#166534';ctx.fillRect(0,0,W,14);ctx.fillStyle='#123d31';ctx.font='700 30px Arial';ctx.textAlign='left';ctx.fillText('Resultados das Auditorias',58,62);ctx.fillStyle='#64748b';ctx.font='16px Arial';ctx.fillText('Ranking mensal e anual • evolução das áreas alimentadas',58,87);ctx.fillStyle='#166534';ctx.font='900 30px Arial';ctx.textAlign='right';ctx.fillText('ALCOB',W-58,61);ctx.fillStyle='#64748b';ctx.font='13px Arial';ctx.fillText('ecovergalhão',W-58,82);ctx.textAlign='left';
+  drawCompactRanking(ctx,58,108,775,'Ranking mensal — '+MONTHS[cpm],reportRankingAllPeople(scores,MONTHS[cpm]));drawCompactRanking(ctx,851,108,775,'Ranking anual — 2026',reportRankingAllPeople(scores,null));
+  var gap=20,gridX=58,gridY=306,cardW=(W-116-gap)/2,cardH=388;groups.forEach(function(group,index){drawExecutiveArea(ctx,group,gridX+(index%2)*(cardW+gap),gridY+Math.floor(index/2)*(cardH+gap),cardW,cardH)});
+  ctx.strokeStyle='#cbd5e1';ctx.beginPath();ctx.moveTo(58,H-36);ctx.lineTo(W-58,H-36);ctx.stroke();ctx.fillStyle='#64748b';ctx.font='11px Arial';ctx.textAlign='left';ctx.fillText('ALCOB • Sistema de Auditorias',58,H-17);ctx.textAlign='right';ctx.fillText('Emissão: '+new Date().toLocaleDateString('pt-BR')+' • Página '+(pageIndex+1)+' de '+totalPages,W-58,H-17);return canvas;
+}
+async function generatePagedExecutivePdf(scores,fileDate){
+  var groups=executiveProcessGroups(scores),productionNames=['Processo 3','Processo 4','Prensa','Refratário'],production=groups.filter(function(group){return productionNames.indexOf(group.process)>=0}),support=groups.filter(function(group){return productionNames.indexOf(group.process)<0}),pages=[];for(var first=0;first<production.length;first+=4)pages.push(production.slice(first,first+4));for(var index=0;index<support.length;index+=4)pages.push(support.slice(index,index+4));if(!pages.length)pages=[[]];var pdf=new jspdf.jsPDF({orientation:'landscape',unit:'mm',format:'a4'});
+  pages.forEach(function(page,pageIndex){if(pageIndex)pdf.addPage('a4','landscape');var canvas=executivePageCanvas(scores,page,pageIndex,pages.length);pdf.addImage(canvas.toDataURL('image/jpeg',.94),'JPEG',0,0,297,210)});pdf.save('Apresentacao_Executiva_Auditorias_'+fileDate+'.pdf');
+}
+generateExecutivePdfCanvas=generatePagedExecutivePdf;
+
+/* ------------------------------------------------------------------------ */
+/* Formulários configuráveis por setor.                                      */
+/* ------------------------------------------------------------------------ */
+
+var defaultAuditForms={},configuredAuditForms={},formEditorType='',formEditorItems=[];
+function cloneFormItems(items){return items.map(function(item){return{item_key:item.item_key,grupo:item.grupo,pergunta:item.pergunta,peso:Number(item.peso),parametro:item.parametro||''}})}
+function directCells(row){return Array.from(row.children).filter(function(cell){return cell.tagName==='TD'})}
+function captureDefaultAuditForm(type){
+  var config=app.types[type],body=config&&$(config.pfx+'-body');if(!body)return[];var currentGroup='Geral',lastSubheader='',items=[];
+  Array.from(body.children).forEach(function(row){if(row.classList.contains('section-row')){currentGroup=row.textContent.trim()||currentGroup;lastSubheader='';return}var subheader=row.querySelector('.subheader-cell');if(subheader){lastSubheader=subheader.textContent.trim();return}if(!row.dataset.qid)return;var cells=directCells(row),normal=cells.length>=7,question=normal?(cells[2]&&cells[2].textContent.trim()):(cells[0]&&cells[0].textContent.trim()),group=normal?(cells[0]&&cells[0].textContent.trim()):currentGroup;if(!normal&&lastSubheader)question=lastSubheader+' — '+question;var ok=row.querySelector('.ok-check'),parameter=cells.length?cells[cells.length-1].textContent.trim():'';items.push({item_key:row.dataset.qid,grupo:group||currentGroup||'Geral',pergunta:question||'Pergunta sem título',peso:Number(ok&&ok.dataset.val||1),parametro:parameter})});return items;
+}
+function auditWeightLabel(value){var number=Number(value);return Number.isInteger(number)?String(number):number.toFixed(3).replace(/0+$/,'').replace(/\.$/,'')}
+function renderEditableAuditForm(type,items){
+  var config=app.types[type],body=config&&$(config.pfx+'-body');if(!body||!items.length)return;var lastGroup='',markup='';items.forEach(function(item,index){if(item.grupo!==lastGroup){lastGroup=item.grupo;markup+='<tr class="section-row"><td colspan="7">'+html(item.grupo)+'</td></tr>'}var id=item.item_key,weight=auditWeightLabel(item.peso);markup+='<tr data-qid="'+html(id)+'"><td style="text-align:center;font-weight:600;font-size:9px;background:#eef2f7">'+html(item.grupo)+'</td><td class="col-num">'+(index+1)+'</td><td>'+html(item.pergunta)+'</td><td class="col-ok"><input type="checkbox" class="check-input ok-check" data-id="'+html(id)+'" data-val="'+html(weight)+'" onchange="hc(this,\'ok\',\''+config.pfx+'\')"></td><td class="col-no"><input type="checkbox" class="check-input check-no no-check" data-id="'+html(id)+'" data-val="'+html(weight)+'" onchange="hc(this,\'no\',\''+config.pfx+'\')"></td><td class="col-valor">'+html(weight)+'</td><td class="col-param"><div class="param-text">'+html(item.parametro)+'</div></td></tr><tr class="motivo-row" id="m-'+html(id)+'" style="display:none"><td colspan="7"><div class="motivo-field"><label>Motivo:</label><input type="text" placeholder="Descreva"></div></td></tr>'});var total=items.reduce(function(sum,item){return sum+Number(item.peso||0)},0);markup+='<tr class="totals-row"><td colspan="3" style="text-align:right">TOTAL:</td><td id="'+config.pfx+'-tok" style="text-align:center">0</td><td id="'+config.pfx+'-tno" style="text-align:center">0</td><td id="'+config.pfx+'-tv" style="text-align:center">'+html(auditWeightLabel(total))+'</td><td><strong>Nota: <span id="'+config.pfx+'-tf">0,00%</span></strong></td></tr>';body.innerHTML=markup;calc(config.pfx);
+}
+function installAuditFormButtons(){Object.keys(app.types).forEach(function(type){var config=app.types[type],sheet=$(config.sheet),actions=sheet&&sheet.querySelector('.form-actions');if(!actions||actions.querySelector('[data-form-editor]'))return;var button=document.createElement('button');button.type='button';button.className='btn form-editor-button no-print';button.dataset.formEditor=type;button.textContent='⚙️ Editar perguntas e pesos';button.onclick=function(){window.openAuditFormEditor(type)};actions.insertBefore(button,actions.firstChild)})}
+function formEditorRow(item,index){return'<div class="form-editor-row" data-index="'+index+'"><div class="form-editor-order"><button type="button" data-move="up" title="Mover para cima">↑</button><button type="button" data-move="down" title="Mover para baixo">↓</button><strong>'+(index+1)+'</strong></div><label>GRUPO<input data-field="grupo" maxlength="120" value="'+html(item.grupo)+'"></label><label class="form-editor-question">PERGUNTA<textarea data-field="pergunta" maxlength="1000">'+html(item.pergunta)+'</textarea></label><label>PESO (OK)<input data-field="peso" type="number" min="0.001" max="1000" step="0.001" value="'+html(auditWeightLabel(item.peso))+'"></label><label class="form-editor-parameter">PARÂMETRO<textarea data-field="parametro" maxlength="2000">'+html(item.parametro||'')+'</textarea></label><button type="button" class="form-editor-remove" title="Remover pergunta">✕</button></div>'}
+function syncFormEditorState(){var list=$('audit-form-editor-list');if(!list)return;list.querySelectorAll('.form-editor-row').forEach(function(row){var index=Number(row.dataset.index),item=formEditorItems[index];if(!item)return;row.querySelectorAll('[data-field]').forEach(function(field){item[field.dataset.field]=field.dataset.field==='peso'?Number(field.value):field.value})})}
+function renderFormEditor(){var list=$('audit-form-editor-list');if(!list)return;list.innerHTML=formEditorItems.map(formEditorRow).join('');list.querySelectorAll('[data-move]').forEach(function(button){button.onclick=function(){syncFormEditorState();var index=Number(button.closest('.form-editor-row').dataset.index),target=button.dataset.move==='up'?index-1:index+1;if(target<0||target>=formEditorItems.length)return;var item=formEditorItems[index];formEditorItems[index]=formEditorItems[target];formEditorItems[target]=item;renderFormEditor()}});list.querySelectorAll('.form-editor-remove').forEach(function(button){button.onclick=function(){syncFormEditorState();formEditorItems.splice(Number(button.closest('.form-editor-row').dataset.index),1);renderFormEditor()}});$('audit-form-editor-count').textContent=formEditorItems.length+' pergunta(s)'}
+function ensureFormEditorModal(){if($('audit-form-editor'))return;var modal=document.createElement('div');modal.id='audit-form-editor';modal.className='audit-form-editor-overlay';modal.innerHTML='<div class="audit-form-editor-card"><header><div><span>CONFIGURAÇÃO DO FORMULÁRIO</span><h2 id="audit-form-editor-title">Perguntas e pesos</h2><p>O peso informado é o valor obtido quando a resposta for OK; respostas NÃO recebem zero.</p></div><button type="button" class="report-close" onclick="closeAuditFormEditor()">Fechar</button></header><div class="audit-form-editor-toolbar"><button type="button" class="btn btn-save" onclick="addAuditFormQuestion()">＋ Adicionar pergunta</button><button type="button" class="btn btn-clear" onclick="restoreDefaultAuditForm()">↺ Restaurar modelo padrão</button><span id="audit-form-editor-count"></span></div><div id="audit-form-editor-list" class="audit-form-editor-list"></div><footer><button type="button" class="btn btn-clear" onclick="closeAuditFormEditor()">Cancelar</button><button type="button" class="btn btn-save" id="audit-form-editor-save" onclick="saveAuditFormConfiguration()">💾 Salvar formulário</button></footer></div>';document.body.appendChild(modal)}
+window.openAuditFormEditor=async function(type){if(!await app.ensureAdmin())return;if(!app.types[type])return;ensureFormEditorModal();formEditorType=type;formEditorItems=cloneFormItems(configuredAuditForms[type]||defaultAuditForms[type]||[]);$('audit-form-editor-title').textContent=sectorLabel(type)+' — perguntas e pesos';renderFormEditor();$('audit-form-editor').classList.add('open')};
+window.closeAuditFormEditor=function(){var modal=$('audit-form-editor');if(modal)modal.classList.remove('open');formEditorType='';formEditorItems=[]};
+window.addAuditFormQuestion=function(){syncFormEditorState();var last=formEditorItems[formEditorItems.length-1],keyValue='custom-'+Date.now()+'-'+Math.floor(Math.random()*100000);formEditorItems.push({item_key:keyValue,grupo:last&&last.grupo||'Novo grupo',pergunta:'Nova pergunta',peso:1,parametro:''});renderFormEditor();var rows=$('audit-form-editor-list').querySelectorAll('.form-editor-row'),lastRow=rows[rows.length-1];if(lastRow){lastRow.scrollIntoView({block:'center'});lastRow.querySelector('[data-field="pergunta"]').focus()}};
+window.restoreDefaultAuditForm=function(){if(!formEditorType)return;if(!confirm('Restaurar na edição todas as perguntas do modelo original deste setor? A alteração só será aplicada ao salvar.'))return;formEditorItems=cloneFormItems(defaultAuditForms[formEditorType]||[]);renderFormEditor()};
+window.saveAuditFormConfiguration=async function(){if(!formEditorType||!await app.ensureAdmin())return;syncFormEditorState();var invalid=formEditorItems.some(function(item){return!String(item.grupo||'').trim()||!String(item.pergunta||'').trim()||!Number.isFinite(Number(item.peso))||Number(item.peso)<=0});if(!formEditorItems.length){toast('⚠️ O formulário precisa ter pelo menos uma pergunta.');return}if(invalid){toast('⚠️ Preencha grupo, pergunta e um peso maior que zero em todos os itens.');return}var button=$('audit-form-editor-save');button.disabled=true;button.textContent='Salvando...';try{var payload=formEditorItems.map(function(item){return{item_key:item.item_key,grupo:String(item.grupo).trim(),pergunta:String(item.pergunta).trim(),peso:Number(item.peso),parametro:String(item.parametro||'').trim()}});await app.rpc('save_formulario_auditoria',{p_password:app.adminPassword,p_setor:formEditorType,p_items:payload});configuredAuditForms[formEditorType]=cloneFormItems(payload);renderEditableAuditForm(formEditorType,payload);closeAuditFormEditor();toast('✅ Formulário atualizado. As próximas auditorias usarão estas perguntas e pesos.')}catch(error){toast('❌ Não foi possível salvar o formulário: '+error.message)}finally{button.disabled=false;button.textContent='💾 Salvar formulário'}};
+async function loadEditableAuditForms(){Object.keys(app.types).forEach(function(type){defaultAuditForms[type]=captureDefaultAuditForm(type)});installAuditFormButtons();try{var rows=await app.rpc('get_formularios_auditoria',{}),grouped={};(rows||[]).forEach(function(row){if(!grouped[row.setor])grouped[row.setor]=[];grouped[row.setor].push({item_key:row.item_key,grupo:row.grupo,pergunta:row.pergunta,peso:Number(row.peso),parametro:row.parametro||''})});Object.keys(grouped).forEach(function(type){if(app.types[type]&&grouped[type].length){configuredAuditForms[type]=grouped[type];renderEditableAuditForm(type,grouped[type])}})}catch(error){console.warn('Configuração personalizada de formulários indisponível:',error)}}
+
+/* ------------------------------------------------------------------------ */
 /* Navegação e inicialização.                                                */
 /* ------------------------------------------------------------------------ */
 
@@ -772,9 +852,9 @@ function syncEnhancedNavigation(){
   if($('kaizen-tab-btn'))$('kaizen-tab-btn').style.display='';
   if($('action-status-filter'))$('action-status-filter').closest('label').style.display=admin?'':'none';
 }
-installHierarchySubsetor();installMatrixSubsetor();installActionEnhancements();installSuggestionEnhancements();installKaizenTab();installIntegratedOperatorForms();
+installHierarchySubsetor();installMatrixSubsetor();installActionEnhancements();installSuggestionEnhancements();installKaizenTab();loadEditableAuditForms();
 decorateSubordinationTable();syncEnhancedNavigation();
-var access=$('admin-access-btn');if(access)new MutationObserver(function(){setTimeout(function(){syncEnhancedNavigation();Object.keys(integratedOperatorForms).forEach(function(type){syncIntegratedOperatorForm(integratedOperatorForms[type])})},0)}).observe(access,{childList:true,characterData:true,subtree:true});
+var access=$('admin-access-btn');if(access)new MutationObserver(function(){setTimeout(function(){syncEnhancedNavigation()},0)}).observe(access,{childList:true,characterData:true,subtree:true});
 if(location.hash==='#kaizen')setTimeout(window.switchKaizenTab,100);
 window.addEventListener('hashchange',function(){if(location.hash==='#kaizen')window.switchKaizenTab()});
 setTimeout(function(){refreshPublicAudits();renderQualityChart();syncEnhancedNavigation()},700);
